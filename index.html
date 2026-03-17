@@ -2,428 +2,424 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DORIS | 全息意识资料库 Mobile V28</title>
-    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火星移民伦理 | 异星家园的沉思</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;900&family=Inter:wght@300;400;600&family=Space+Mono&display=swap');
-
         :root {
-            --m-green: #00FF41;
-            --m-gold: #D4AF37;
-            --bg-deep: #010101;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(0, 255, 65, 0.15);
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(10, 12, 18, 0.35); 
+            --glass-border: rgba(255, 255, 255, 0.08);
         }
 
         body {
-            background-color: var(--bg-deep);
-            color: #d1d5db;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
+            margin: 0; padding: 0; overflow: hidden; background-color: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main); letter-spacing: 1.5px;
         }
 
-        .serif-display { font-family: 'Noto Serif SC', serif; }
-        .data-mono { font-family: 'Space Mono', monospace; }
-
-        /* 移动端矩阵底噪 */
-        #matrix-canvas {
-            position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.04;
+        /* 启动屏幕 */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #020202; z-index: 9999; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: var(--text-muted);
+            font-family: monospace; cursor: pointer; transition: opacity 2s ease;
         }
 
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-border);
-            border-radius: 4px;
+        #boot-screen h1 {
+            color: rgba(255, 255, 255, 0.8); letter-spacing: 12px; font-size: 1.2rem;
+            animation: pulse 3s infinite; font-weight: 300;
         }
 
-        .img-mask {
-            position: relative;
-            overflow: hidden;
-            background: #000;
-            border-radius: 2px;
+        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; text-shadow: 0 0 15px rgba(255,255,255,0.3); } 100% { opacity: 0.3; } }
+
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+
+        /* 高级液态玻璃面板 */
+        .glass-panel {
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            box-shadow: 0 10px 40px 0 rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255,255,255,0.05);
+            padding: 24px; pointer-events: auto; transition: transform 0.4s ease, box-shadow 0.4s ease;
         }
-        .img-mask img {
-            transition: transform 1s ease;
-            filter: brightness(0.7) contrast(1.1);
+        .glass-panel:hover { box-shadow: 0 15px 50px 0 rgba(0, 0, 0, 0.9), inset 0 1px 0 0 rgba(255,255,255,0.1); }
+
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;
+            pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
+            padding: 50px; box-sizing: border-box; opacity: 0; transition: opacity 3s ease;
         }
 
-        /* 移动端专用导航 */
-        nav {
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            z-index: 1000;
-        }
+        header { text-align: left; margin-left: 20px; }
+        h1.title { font-size: 2.2rem; font-weight: 200; margin: 0; color: #fff; letter-spacing: 6px; }
+        .subtitle { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 10px; letter-spacing: 4px; text-transform: uppercase; }
 
-        .nav-link {
-            font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
-            color: rgba(255, 255, 255, 0.4); padding: 8px 0;
-            transition: 0.3s;
-        }
-        .nav-link.active { color: var(--m-green); border-bottom: 2px solid var(--m-green); }
+        .data-panel { position: absolute; top: 150px; left: 70px; width: 300px; }
+        .ethics-panel { position: absolute; top: 50%; right: 70px; transform: translateY(-50%); width: 400px; max-height: 70vh; overflow-y: auto; }
+        .ethics-panel::-webkit-scrollbar { display: none; }
+        .ethics-panel { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .btn-portal {
-            padding: 14px 0; width: 100%; color: var(--m-green);
-            text-transform: uppercase; letter-spacing: 0.3em; font-weight: 600;
-            font-size: 0.8rem; border: 1px solid var(--m-green);
-            background: transparent; text-align: center;
-            display: block; transition: 0.3s;
-        }
-        .btn-portal:active { background: var(--m-green); color: #000; }
+        h2 { font-size: 1rem; font-weight: 400; margin-top: 0; margin-bottom: 24px; color: rgba(255,255,255,0.8); display: flex; align-items: center; letter-spacing: 2px;}
+        h2::before { content: ''; display: inline-block; width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; margin-right: 12px; }
 
-        .annotation {
-            color: var(--m-gold); font-size: 9px; letter-spacing: 2px;
-            text-transform: uppercase; opacity: 0.6; margin-bottom: 10px;
-            display: block;
-        }
+        .accordion-item { margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); border-radius: 12px; background: rgba(255,255,255,0.01); overflow: hidden; }
+        .accordion-header { padding: 18px; cursor: pointer; font-size: 0.85rem; font-weight: 400; display: flex; justify-content: space-between; align-items: center; transition: background 0.4s; color: rgba(255,255,255,0.9);}
+        .accordion-header:hover { background: rgba(255,255,255,0.04); }
+        .accordion-icon { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: flex; justify-content: center; align-items: center; transition: transform 0.4s; font-size: 0.7rem; color: rgba(255,255,255,0.5);}
+        
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1); padding: 0 18px; }
+        .accordion-content p { font-size: 0.8rem; line-height: 1.8; color: rgba(255,255,255,0.5); margin: 12px 0 20px 0; text-align: justify; font-weight: 300;}
+        
+        .accordion-item.active .accordion-content { max-height: 500px; }
+        .accordion-item.active .accordion-icon { transform: rotate(45deg); border-color: rgba(255,255,255,0.6); color: rgba(255,255,255,0.9);}
 
-        /* 页面切换 */
-        .page-node { transition: opacity 0.5s ease; }
-        .node-hidden { display: none; }
+        .data-list { list-style: none; padding: 0; margin: 0; }
+        .data-list li { font-size: 0.85rem; margin-bottom: 20px; display: flex; flex-direction: column; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;}
+        .data-label { color: rgba(255,255,255,0.4); font-size: 0.7rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;}
+        .data-value { color: rgba(255,255,255,0.9); font-weight: 300; font-family: monospace; font-size: 0.95rem;}
 
-        .api-config-tray {
-            background: rgba(10,10,10,0.9);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            padding: 15px; margin-top: 20px;
+        .action-container { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); pointer-events: auto; }
+        .btn-launch { 
+            background: transparent; border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8);
+            padding: 16px 48px; border-radius: 40px; font-size: 0.9rem; font-weight: 300; cursor: pointer; 
+            letter-spacing: 3px; backdrop-filter: blur(10px); transition: all 0.5s ease; text-transform: uppercase;
         }
-        .api-config-tray input {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 12px; width: 100%; margin-top: 10px;
-            outline: none; font-size: 14px; /* 防止 iOS 自动缩放 */
-        }
+        .btn-launch:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.8); color: #fff; transform: translateY(-2px); box-shadow: 0 0 30px rgba(255,255,255,0.1); }
 
-        .image-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.8));
-            pointer-events: none;
-        }
-
-        /* 隐藏滚动条 */
-        ::-webkit-scrollbar { display: none; }
+        #music-toggle { position: absolute; top: 50px; right: 70px; background: transparent; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 0.8rem; pointer-events: auto; letter-spacing: 2px; transition: color 0.3s;}
+        #music-toggle:hover { color: rgba(255,255,255,0.9); }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <canvas id="matrix-canvas"></canvas>
+    <audio id="bg-music" src="bgm.mp3" loop></audio>
 
-    <!-- 移动端引导屏 -->
-    <div id="boot-screen" class="fixed inset-0 z-[10000] bg-[#000] flex flex-col items-center justify-center p-8">
-        <div class="text-center space-y-12 w-full">
-            <h1 class="serif-display text-5xl font-black tracking-[0.5em] text-white italic">DORIS</h1>
-            <div class="space-y-6">
-                <p class="data-mono opacity-30 text-[9px] tracking-[0.3em]">MOBILE ARCHIVE ACCESS</p>
-                <div class="flex justify-center gap-6">
-                    <button onclick="setLanguage('zh')" class="text-[11px] text-white/40 hover:text-green-400">中文</button>
-                    <button onclick="setLanguage('en')" class="text-[11px] text-white/40 hover:text-green-400">EN</button>
-                </div>
-            </div>
-            <div id="boot-log" class="text-[8px] data-mono opacity-20 h-16 overflow-hidden text-center leading-loose"></div>
-            <button id="start-btn" class="hidden btn-portal">初始化接入</button>
-        </div>
+    <div id="boot-screen" onclick="startExperience()">
+        <h1>[ SYSTEM STANDBY ]</h1>
+        <p style="font-size: 0.7rem; letter-spacing: 4px; margin-top: 20px;">CLICK TO INITIATE HOLOGRAPHIC UPLINK</p>
     </div>
 
-    <!-- 顶部固定导航 -->
-    <nav class="fixed top-0 w-full px-6 py-4 flex flex-col space-y-3 bg-[#010101]/80">
-        <div class="flex justify-between items-center">
-            <span class="serif-display text-xl font-bold tracking-tighter text-white" onclick="switchPage('archive')">DORIS</span>
-            <div id="audio-status" class="flex items-center space-x-2">
-                <span class="w-1 h-1 bg-green-500 rounded-full animate-pulse"></span>
-                <span class="text-[8px] data-mono opacity-40 uppercase">Resonance Active</span>
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <header>
+            <h1 class="title">MARS PROJECT</h1>
+            <div class="subtitle">火星移民伦理 / 行星档案系统</div>
+        </header>
+
+        <button id="music-toggle" onclick="toggleMusic()">AUDIO: ON</button>
+
+        <div class="glass-panel data-panel">
+            <h2>行星遥感数据</h2>
+            <ul class="data-list">
+                <li><span class="data-label">坐标定位</span><span class="data-value">SOLAR SYSTEM / ORION ARM</span></li>
+                <li><span class="data-label">距地距离 (LY)</span><span class="data-value">0.0000058 - 0.000042</span></li>
+                <li><span class="data-label">表面气候</span><span class="data-value">-60 °C / ARID DESERT</span></li>
+            </ul>
+        </div>
+
+        <div class="glass-panel ethics-panel">
+            <h2>星际移民分析报告</h2>
+            
+            <div class="accordion-item" onmouseenter="playHoverSound()">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>马斯克与星链网络</span><div class="accordion-icon">+</div>
+                </div>
+                <div class="accordion-content">
+                    <p>正在部署的“火星版星链”将作为深空通信基础设施。马斯克计划通过星舰运送百万人口，建立自给自足的城市。但在你上方飞过的卫星阵列，是希望之光，还是私人资本对天穹的垄断？</p>
+                </div>
+            </div>
+
+            <div class="accordion-item" onmouseenter="playHoverSound()">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>阶级折叠与船票困境</span><div class="accordion-icon">+</div>
+                </div>
+                <div class="accordion-content">
+                    <p>当首批“火星船票”标价数百万美元时，移民将不可避免地成为权贵特权。这是否意味着人类在地球的灾难面前抛弃了弱者？火星城市会成为乌托邦，还是终极的阶级壁垒？</p>
+                </div>
+            </div>
+
+            <div class="accordion-item" onmouseenter="playHoverSound()">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>原生地质霸权主义</span><div class="accordion-icon">+</div>
+                </div>
+                <div class="accordion-content">
+                    <p>火星虽然荒芜，但仍有其独特的地质演化史。人类为了自身繁衍，大规模改造大气的“地球化”（Terraforming）行为，是否属于一种宇宙尺度上的“生态帝国主义”？</p>
+                </div>
+            </div>
+            
+            <div class="accordion-item" onmouseenter="playHoverSound()">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>地球视角的凝视</span><div class="accordion-icon">+</div>
+                </div>
+                <div class="accordion-content">
+                    <p>当我们仰望星空，把火星视作“备胎星球”时，潜意识中已经放弃了拯救地球。真正的伦理挑战在于：我们是否有勇气带着地球上的错误，去污染另一片净土？</p>
+                </div>
             </div>
         </div>
-        <div class="flex space-x-6">
-            <button onclick="switchPage('archive')" id="nav-archive" class="nav-link active">全息档案</button>
-            <button onclick="switchPage('founder')" id="nav-founder" class="nav-link">创始人</button>
+
+        <div class="action-container" onmouseenter="playHoverSound()">
+            <button class="btn-launch" onclick="playClickSound(); setTimeout(()=>alert('系统提示：生命维持系统正在校验。请确认您已阅读并接受所有星际伦理协议。'), 800)">Initiate Journey</button>
         </div>
-    </nav>
-
-    <div id="stage-nexus">
-        
-        <!-- SECTION: 全息档案 (Mobile Archive) -->
-        <main id="node-archive" class="page-node px-6 pt-32 pb-20 space-y-24">
-            
-            <header class="text-center space-y-8">
-                <span class="annotation">// System Extraction</span>
-                <h1 id="main-title" class="serif-display text-5xl font-black leading-tight text-white italic">GATEWAY</h1>
-                <div class="img-mask aspect-[16/9] shadow-xl mt-6">
-                    <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=1200&auto=format&fit=crop" alt="Universe" class="w-full h-full object-cover">
-                    <div class="image-overlay"></div>
-                </div>
-            </header>
-
-            <!-- 门罗档案 -->
-            <section class="space-y-8">
-                <div class="space-y-2">
-                    <span class="annotation">Subject // 01_MONROE</span>
-                    <h2 id="bio-header" class="serif-display text-3xl text-white font-black italic">罗伯特·门罗</h2>
-                </div>
-                <div class="glass-card p-6 space-y-6">
-                    <p id="bio-content" class="text-sm leading-relaxed text-gray-400 font-light">
-                        作为人类意识探索领域的现代先驱，罗伯特·门罗在1958年经历了自发的“出体经验”。他通过科学的方式记录了意识如何脱离物理定律，并开发出 Hemi-Sync 技术。
-                    </p>
-                    <div class="img-mask aspect-video">
-                        <img src="https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1000&auto=format&fit=crop" alt="Pioneer" class="w-full h-full object-cover">
-                    </div>
-                    <button onclick="speakText('bio-content')" class="btn-portal">点击语音播报</button>
-                </div>
-            </section>
-
-            <!-- 共振调谐 -->
-            <section class="space-y-8">
-                <div class="space-y-2">
-                    <span class="annotation">// Neural Sync</span>
-                    <h2 id="sync-header" class="serif-display text-3xl text-white font-black italic">共振调谐</h2>
-                </div>
-                <div class="glass-card p-8 space-y-8 text-center">
-                    <div class="flex justify-between items-end data-mono mb-4">
-                        <span class="text-[9px] opacity-30">SYNC_LEVEL</span>
-                        <span id="sync-val" class="text-green-500 font-black text-4xl">0%</span>
-                    </div>
-                    <input type="range" id="sync-slider" min="0" max="100" value="0" class="w-full h-1 bg-gray-800 rounded-lg appearance-none accent-green-500">
-                    <div class="h-40 w-full mt-6">
-                        <canvas id="syncChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 阿卡西接口 -->
-            <section class="space-y-8">
-                <div class="space-y-2">
-                    <span class="annotation">Interface // 04_ORACLE</span>
-                    <h2 id="ai-header" class="serif-display text-3xl text-white font-black italic">阿卡西接口</h2>
-                </div>
-                <div class="glass-card p-6 space-y-8">
-                    <div class="img-mask aspect-video">
-                        <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1000&auto=format&fit=crop" alt="Oracle" class="w-full h-full object-cover opacity-60">
-                        <div class="image-overlay"></div>
-                    </div>
-                    <p id="ai-desc" class="text-[11px] leading-relaxed text-gray-500 italic">
-                        阿卡西记录被理解为“全息纠缠场”。通过调调整大脑相干度，实现相位移动检索数据。
-                    </p>
-                    <textarea id="ai-input" class="w-full h-32 bg-white/5 border border-white/10 p-4 text-white text-sm" placeholder="输入您的灵魂提问..."></textarea>
-                    <button onclick="askOracle()" id="ai-btn" class="btn-portal">执行数据提取</button>
-                    
-                    <div class="api-config-tray">
-                        <label class="data-mono text-[9px] text-gold-500 uppercase">// KEY CONFIG (API密钥):</label>
-                        <input type="password" id="key-input" placeholder="在此粘贴 API Key..." onchange="updateKey(this.value)">
-                    </div>
-
-                    <div id="ai-response-container" class="min-h-[200px] border-t border-white/5 pt-6 relative">
-                        <div id="ai-loading" class="hidden flex flex-col items-center py-10 space-y-4">
-                            <div class="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                            <span class="data-mono text-[9px] text-green-500 animate-pulse uppercase">Syncing...</span>
-                        </div>
-                        <div id="ai-output" class="text-sm text-gray-300 leading-relaxed italic text-center">
-                            [ 等待指令 ]
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- SECTION: 创始人专页 (Mobile Founder) -->
-        <main id="node-founder" class="page-node node-hidden px-6 pt-32 pb-20 space-y-16">
-            
-            <header class="text-center space-y-4">
-                <span class="annotation">// Archive Architect</span>
-                <h1 class="serif-display text-6xl font-black text-white italic">DORIS</h1>
-                <p class="text-[10px] data-mono opacity-20 uppercase tracking-widest">Guardian of the Digital Gnosis</p>
-            </header>
-
-            <div class="img-mask aspect-[3/4] shadow-2xl">
-                <img src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1000&auto=format&fit=crop" alt="Founder" class="w-full h-full object-cover">
-                <div class="image-overlay"></div>
-            </div>
-
-            <div class="glass-card p-8 space-y-8">
-                <div class="space-y-2">
-                    <span class="annotation">Origin Narrative // 00_DORIS</span>
-                    <h2 id="founder-header" class="serif-display text-3xl text-white font-black italic">从物质到灵魂</h2>
-                </div>
-                <p id="founder-content" class="text-base leading-relaxed text-gray-400 font-light">
-                    DORIS，一名出生于中国的00后女性，曾是一名坚定的唯物主义者。由于经历了一系列如“鬼压床”等无法用常规科学解释的神秘体验，她的世界观发生了彻底坍塌与重构。从那一刻起，她转变为一名深度的灵魂修行者。
-                    <br><br>
-                    对艺术、灵魂本质与神秘学的无限热爱，促使她创建了这一名为“DORIS”的个人全息终端。这是一个会不断更新资料的灵性艺术与神秘学在线资料库。
-                </p>
-                <button onclick="speakText('founder-content')" class="btn-portal">收听语音介绍</button>
-            </div>
-
-            <div class="glass-card p-6 data-mono text-[10px] space-y-3">
-                <div class="flex justify-between"><span>ORIGIN</span><span class="text-white">CHINA_00s</span></div>
-                <div class="flex justify-between"><span>STATUS</span><span class="text-green-500">AWAKENED</span></div>
-                <div class="flex justify-between"><span>PASSION</span><span class="text-white">ART & OCCULT</span></div>
-            </div>
-        </main>
-
     </div>
-
-    <footer class="py-20 text-center border-t border-white/5 space-y-6">
-        <div class="serif-display text-3xl font-black tracking-[0.5em] opacity-10 text-white">DORIS</div>
-        <div class="data-mono text-[8px] opacity-20 uppercase tracking-[2px]">
-            © 2026 spiritual archive // v28.0 mobile
-        </div>
-    </footer>
 
     <script>
-        let apiKey = ""; 
-        let currentLang = 'zh';
-        let audioCtx, masterGain, leftOsc, rightOsc, syncChart;
+        // ==========================
+        // 1. 深空晶体回音系统 (空灵科幻交互音效)
+        // ==========================
+        let audioCtx;
+        const bgMusic = document.getElementById('bg-music');
+        let isMusicPlaying = false;
 
-        function updateKey(val) { apiKey = val.trim(); }
-
-        const i18n = {
-            zh: {
-                mainTitle: "GATEWAY", bioHeader: "罗伯特·门罗", bioContent: "人类意识探索领域的先驱。门罗通过科学记录证明了意识可以脱离物理肉体存在。他的 Hemi-Sync 技术被广泛用于引导人类跨越维度障碍。",
-                syncHeader: "共振调谐", aiHeader: "阿卡西接口", aiBtn: "执行数据提取", waitInput: "[ 等待指令 ]",
-                founderHeader: "从物质到灵魂",
-                founderContent: "DORIS，一名出生于中国的00后女性，曾是一名坚定的唯物主义者。由于经历了一系列如“鬼压床”等无法用常规科学解释的神秘体验，她的世界观发生了彻底坍塌与重构。她转变为一名深度的灵魂修行者。对艺术、灵魂本质与神秘学的无限热爱，促使她创建了这一在线灵性资料库。",
-                navArchive: "全息档案", navFounder: "创始人", bootBtn: "初始化接入"
-            },
-            en: {
-                mainTitle: "GATEWAY", bioHeader: "Robert Monroe", bioContent: "A pioneer of consciousness. Monroe scientifically proved that consciousness exists independent of the body. His Hemi-Sync technology maps non-physical realms.",
-                syncHeader: "Resonance", aiHeader: "Akashic Interface", aiBtn: "Extract Data", waitInput: "[ Awaiting Instruction ]",
-                founderHeader: "From Matter to Soul",
-                founderContent: "DORIS, a post-00s Chinese female, was once a firm materialist. Mystical experiences like sleep paralysis shattered her worldview, leading her to become a dedicated soul practitioner. This naming site, 'DORIS', is a spiritual art database born from her passion.",
-                navArchive: "Archive", navFounder: "Founder", bootBtn: "Initialize"
-            }
-        };
-
-        window.onload = () => {
-            const canvas = document.getElementById('matrix-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            const drops = new Array(Math.floor(canvas.width / 20)).fill(1);
-            setInterval(() => {
-                ctx.fillStyle = 'rgba(1, 1, 1, 0.1)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#00FF41'; ctx.font = '12px monospace';
-                drops.forEach((y, i) => {
-                    const text = String.fromCharCode(0x30A0 + Math.random() * 96);
-                    ctx.fillText(text, i * 20, y * 20);
-                    if(y * 20 > canvas.height && Math.random() > 0.98) drops[i] = 0;
-                    drops[i]++;
-                });
-            }, 100);
-
-            const logs = ["> Mobile_Nexus: READY", "> Identity_DORIS: SYNCED", "> Welcome to Archive."];
-            let l=0, c=0; const logEl = document.getElementById('boot-log');
-            function tLog() {
-                if(l < logs.length) {
-                    if(c < logs[l].length) { logEl.innerHTML += logs[l].charAt(c); c++; setTimeout(tLog, 15); }
-                    else { logEl.innerHTML += "<br>"; l++; c=0; setTimeout(tLog, 150); }
-                } else { document.getElementById('start-btn').classList.remove('hidden'); }
-            }
-            tLog();
-        };
-
-        document.getElementById('start-btn').onclick = () => {
-            initAudio();
-            setLanguage('zh');
-            document.getElementById('boot-screen').style.opacity = '0';
-            setTimeout(() => document.getElementById('boot-screen').style.display = 'none', 600);
-            initCharts();
-        };
-
-        function switchPage(pageId) {
-            document.querySelectorAll('.page-node').forEach(p => p.classList.add('node-hidden'));
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            document.getElementById(`node-${pageId}`).classList.remove('node-hidden');
-            document.getElementById(`nav-${pageId}`).classList.add('active');
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        function setLanguage(lang) {
-            currentLang = lang;
-            const d = i18n[lang];
-            const map = {
-                'main-title': 'mainTitle', 'bio-header': 'bioHeader', 'bio-content': 'bioContent',
-                'sync-header': 'syncHeader', 'ai-header': 'aiHeader', 'ai-btn': 'aiBtn', 'ai-output': 'waitInput',
-                'founder-header': 'founderHeader', 'founder-content': 'founderContent',
-                'nav-archive': 'navArchive', 'nav-founder': 'navFounder', 'start-btn': 'bootBtn'
-            };
-            Object.keys(map).forEach(id => {
-                const el = document.getElementById(id);
-                if (el && d[map[id]]) el.innerText = d[map[id]];
-            });
-        }
-
-        async function askOracle() {
-            const input = document.getElementById('ai-input').value;
-            const out = document.getElementById('ai-output');
-            const loader = document.getElementById('ai-loading');
-            if (!apiKey) { out.innerText = "> 错误: 请输入 API Key。"; return; }
-            if(!input) return;
-            loader.classList.remove('hidden'); out.classList.add('opacity-10');
-            
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: input }] }], systemInstruction: { parts: [{ text: `You are the Oracle for DORIS. High-end mystical tone. User language: ${currentLang}.` }] } })
-                });
-                const data = await res.json();
-                out.innerText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            } catch (e) {
-                out.innerText = "> 连接失败。请检查代理及Key。";
-            } finally {
-                loader.classList.add('hidden'); out.classList.remove('opacity-10');
-            }
-        }
-
-        function initAudio() {
+        function startExperience() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            masterGain = audioCtx.createGain(); masterGain.gain.value = 0.05;
+            bgMusic.volume = 0.4;
+            bgMusic.play().then(() => { isMusicPlaying = true; }).catch(e => console.log("等待本地BGM"));
+
+            const bootScreen = document.getElementById('boot-screen');
+            bootScreen.style.opacity = '0';
+            setTimeout(() => {
+                bootScreen.style.display = 'none';
+                document.getElementById('ui-layer').style.opacity = '1';
+                playBootSound(); 
+            }, 2000);
+        }
+
+        function toggleMusic() {
+            playClickSound(); 
+            const btn = document.getElementById('music-toggle');
+            if(isMusicPlaying) { bgMusic.pause(); btn.innerText = 'AUDIO: OFF'; } 
+            else { bgMusic.play(); btn.innerText = 'AUDIO: ON'; }
+            isMusicPlaying = !isMusicPlaying;
+        }
+
+        function playHoverSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(50, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0, audioCtx.currentTime); 
+            gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.05);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function playClickSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            const masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.6;
             masterGain.connect(audioCtx.destination);
-            [216, 432].forEach(f => {
-                const osc = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.value = f; g.gain.value = 0.005;
-                osc.connect(g); g.connect(masterGain); osc.start();
+
+            const delay = audioCtx.createDelay();
+            delay.delayTime.value = 0.4; 
+            const feedback = audioCtx.createGain();
+            feedback.gain.value = 0.3; 
+            delay.connect(feedback);
+            feedback.connect(delay);
+            delay.connect(masterGain);
+
+            const frequencies = [880, 1318.5]; 
+            frequencies.forEach((freq, index) => {
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine'; 
+                osc.frequency.value = freq + (index * 2); 
+
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.1, now + 0.02); 
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5); 
+
+                osc.connect(gain);
+                gain.connect(masterGain);
+                gain.connect(delay); 
+
+                osc.start(now);
+                osc.stop(now + 2.0);
             });
-            leftOsc = audioCtx.createOscillator(); rightOsc = audioCtx.createOscillator();
-            const merger = audioCtx.createChannelMerger(2);
-            leftOsc.frequency.value = 100; rightOsc.frequency.value = 114;
-            leftOsc.connect(merger, 0, 0); rightOsc.connect(merger, 0, 1);
-            merger.connect(masterGain); leftOsc.start(); rightOsc.start();
         }
 
-        function initCharts() {
-            const ctx = document.getElementById('syncChart').getContext('2d');
-            syncChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 60}, (_, i) => i),
-                    datasets: [{ data: [], borderColor: '#00FF41', borderWidth: 1.5, pointRadius: 0, tension: 0.4 },
-                               { data: [], borderColor: '#D4AF37', borderWidth: 1.5, pointRadius: 0, tension: 0.4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false, min:-15, max:15 } }, plugins: { legend: { display: false } } }
-            });
-            updateSync(0);
+        function playBootSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.exponentialRampToValueAtTime(400, now + 1.5);
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.1, now + 0.5);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+            osc.start(now); osc.stop(now + 2.0);
         }
 
-        function updateSync(v) {
-            const ph = (1 - v/100) * Math.PI;
-            const labels = Array.from({length: 60}, (_, i) => i);
-            syncChart.data.datasets[0].data = labels.map(x => Math.sin(x*0.3)*10);
-            syncChart.data.datasets[1].data = labels.map(x => Math.sin(x*0.3 + ph)*10);
-            syncChart.update();
-            if(audioCtx) rightOsc.frequency.setTargetAtTime(100 + (14 - (v/100)*10), audioCtx.currentTime, 0.2);
-            document.getElementById('sync-val').innerText = v + "%";
+        function toggleAccordion(element) {
+            playClickSound(); 
+            const item = element.parentElement;
+            const allItems = document.querySelectorAll('.accordion-item');
+            allItems.forEach(i => { if(i !== item && i.classList.contains('active')) i.classList.remove('active'); });
+            item.classList.toggle('active');
         }
 
-        document.getElementById('sync-slider').oninput = function() { updateSync(this.value); };
+        // ==========================
+        // 2. Three.js 引擎 (极致物理建模与法线贴图)
+        // ==========================
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); 
+        scene.fog = new THREE.FogExp2(0x000000, 0.0012);
 
-        function speakText(id) {
-            const text = document.getElementById(id).innerText;
-            window.speechSynthesis.cancel();
-            const ut = new SpeechSynthesisUtterance(text);
-            ut.lang = currentLang === 'zh' ? 'zh-CN' : 'en-US';
-            ut.rate = 0.9; window.speechSynthesis.speak(ut);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.z = 320;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+
+        // 灯光：强烈的侧光才能凸显地形的凹凸感
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.05); 
+        scene.add(ambientLight);
+        const sunLight = new THREE.DirectionalLight(0xffeedd, 2.0); 
+        sunLight.position.set(200, 50, 150);
+        scene.add(sunLight);
+        const backLight = new THREE.DirectionalLight(0x2244aa, 0.3); 
+        backLight.position.set(-200, -100, -200);
+        scene.add(backLight);
+
+        const marsGroup = new THREE.Group();
+        scene.add(marsGroup);
+
+        // 【细节优化 1】：极高面数几何体 (256x256)，并且直接扭曲顶点让火星变“不完美”
+        const marsGeometry = new THREE.SphereGeometry(90, 256, 256);
+        const positionAttribute = marsGeometry.attributes.position;
+        const vertex = new THREE.Vector3();
+        for (let i = 0; i < positionAttribute.count; i++) {
+            vertex.fromBufferAttribute(positionAttribute, i);
+            // 叠加多层噪波制造山脉和陨石坑的物理隆起
+            const noise1 = Math.sin(vertex.x * 0.05) * Math.cos(vertex.y * 0.05) * Math.sin(vertex.z * 0.05);
+            const noise2 = Math.sin(vertex.x * 0.2) * Math.cos(vertex.y * 0.2) * Math.sin(vertex.z * 0.2);
+            vertex.multiplyScalar(1 + noise1 * 0.02 + noise2 * 0.005); 
+            positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
         }
+        marsGeometry.computeVertexNormals(); // 重新计算光影法线
+
+        // 【细节优化 2】：加载高速且稳定的真实火星贴图 (颜色图 + 法线图)
+        const marsMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffffff, // 必须调白以显示原图
+            roughness: 1.0,  // 极致干旱无反光
+            metalness: 0.1
+        });
+
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.crossOrigin = 'anonymous'; 
+
+        // 使用 jsdelivr CDN 加载 three.js 官方的高清行星贴图库，速度快且不跨域
+        const colorMapUrl = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/planets/mars_1k_color.jpg';
+        const normalMapUrl = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@master/examples/textures/planets/mars_1k_normal.jpg';
+
+        // 加载颜色皮肤
+        textureLoader.load(colorMapUrl, (texture) => {
+            marsMaterial.map = texture;
+            marsMaterial.needsUpdate = true;
+        }, undefined, () => { marsMaterial.color.setHex(0x8b3a2b); });
+
+        // 加载法线贴图（生成逼真的微小陨石坑和尘土阴影肌理）
+        textureLoader.load(normalMapUrl, (normalTexture) => {
+            marsMaterial.normalMap = normalTexture;
+            marsMaterial.normalScale.set(4.0, 4.0); // 强化凹凸深度
+            marsMaterial.needsUpdate = true;
+        });
+
+        const marsSphere = new THREE.Mesh(marsGeometry, marsMaterial);
+        marsSphere.rotation.z = 25 * Math.PI / 180; 
+        marsGroup.add(marsSphere);
+
+        // 大气层
+        const atmosGeometry = new THREE.SphereGeometry(94, 64, 64);
+        const atmosMaterial = new THREE.MeshBasicMaterial({ color: 0xff4422, transparent: true, opacity: 0.03, blending: THREE.AdditiveBlending });
+        marsGroup.add(new THREE.Mesh(atmosGeometry, atmosMaterial));
+
+        // 碎石带
+        const asteroidGroup = new THREE.Group();
+        marsGroup.add(asteroidGroup); 
+        const astMaterial = new THREE.MeshStandardMaterial({ color: 0x554433, roughness: 1.0, metalness: 0.1 });
+        for (let i = 0; i < 80; i++) {
+            const astGeom = new THREE.DodecahedronGeometry(Math.random() * 2 + 0.5);
+            const astPos = astGeom.attributes.position;
+            const astVert = new THREE.Vector3();
+            for(let j=0; j<astPos.count; j++) {
+                astVert.fromBufferAttribute(astPos, j);
+                astVert.multiplyScalar(1 + (Math.random()-0.5)*0.5);
+                astPos.setXYZ(j, astVert.x, astVert.y, astVert.z);
+            }
+            astGeom.computeVertexNormals();
+            const asteroid = new THREE.Mesh(astGeom, astMaterial);
+            const theta = Math.random() * Math.PI * 2;
+            const phi = (Math.random() - 0.5) * Math.PI * 0.25; 
+            const r = 140 + Math.random() * 60; 
+            asteroid.position.set(r * Math.cos(phi) * Math.cos(theta), r * Math.sin(phi), r * Math.cos(phi) * Math.sin(theta));
+            asteroid.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+            asteroid.userData = { rx: (Math.random() - 0.5) * 0.01, ry: (Math.random() - 0.5) * 0.01 };
+            asteroidGroup.add(asteroid);
+        }
+
+        // 星际尘埃
+        const dustGeometry = new THREE.BufferGeometry();
+        const dustCount = 2500;
+        const dustPosArray = new Float32Array(dustCount * 3);
+        for(let i = 0; i < dustCount * 3; i++) dustPosArray[i] = (Math.random() - 0.5) * 1200; 
+        dustGeometry.setAttribute('position', new THREE.BufferAttribute(dustPosArray, 3));
+        const dustParticles = new THREE.Points(dustGeometry, new THREE.PointsMaterial({ size: 1.0, color: 0xffccaa, transparent: true, opacity: 0.2 }));
+        scene.add(dustParticles);
+
+        // 星链网络
+        const starlinkGroup = new THREE.Group();
+        scene.add(starlinkGroup);
+        starlinkGroup.rotation.z = Math.PI / 8;
+        const satMaterial = new THREE.MeshBasicMaterial({ color: 0x88bbff });
+        const satGeometry = new THREE.BoxGeometry(1.2, 0.1, 0.4);
+        for(let i = 0; i < 25; i++) {
+            const satellite = new THREE.Mesh(satGeometry, satMaterial);
+            const angle = i * 0.03; 
+            satellite.position.set(Math.cos(angle) * 170, 0, Math.sin(angle) * 170);
+            satellite.lookAt(0,0,0);
+            starlinkGroup.add(satellite);
+        }
+
+        let mouseX = 0, mouseY = 0, targetX = 0, targetY = 0;
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+        document.addEventListener('mousemove', (event) => { mouseX = (event.clientX - windowHalfX); mouseY = (event.clientY - windowHalfY); });
+        
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+            
+            marsSphere.rotation.y += 0.0005; 
+            
+            asteroidGroup.children.forEach(ast => { ast.rotation.x += ast.userData.rx; ast.rotation.y += ast.userData.ry; });
+            asteroidGroup.rotation.y += 0.0004;
+            asteroidGroup.rotation.x = Math.sin(time * 0.05) * 0.05;
+            
+            dustParticles.rotation.y -= 0.0001;
+            starlinkGroup.rotation.y += 0.003;
+            
+            targetX = mouseX * 0.0006; targetY = mouseY * 0.0006;
+            camera.position.x += (targetX * 100 - camera.position.x) * 0.03;
+            camera.position.y += (-targetY * 100 - camera.position.y) * 0.03;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
     </script>
 </body>
 </html>
